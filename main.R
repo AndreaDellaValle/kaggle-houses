@@ -1,7 +1,3 @@
-library(corrplot)
-require('caret')
-library(rpart)
-library(rpart.plot)
 library('ggplot2')
 library('ggthemes') 
 library('scales')
@@ -13,6 +9,7 @@ library('gridExtra')
 library('corrplot') 
 library('GGally')
 library('e1071')
+library('onehot')
 
 train <- read.csv2('./input/train.csv', sep = ',', stringsAsFactors = FALSE)
 test <- read.csv2('./input/test.csv', sep = ',', stringsAsFactors = FALSE)
@@ -123,15 +120,95 @@ test$SaleType[is.na(test$SaleType)] = get_mode(test$SaleType)
 
 cat_var <- names(train)[which(sapply(train, is.character))]
 
+numeric_var <- names(train)[which(sapply(train, is.numeric))]
+
+train1_cat<-train[cat_var]
+train1_num<-train[numeric_var]
+
+# One Hot Encoding of categories
+train2_cat <- onehot(train1_cat, stringsAsFactors = TRUE, max_levels = 1000)
+train1_encoded = predict(train2_cat, train1_cat)
+
+# manual one hot encoding test
+# for(unique_value in unique(train1_cat$street)){
+  
+  
+  # train1_cat[paste("street", unique_value, sep = "_")] <- ifelse(train1_cat$street == unique_value, 1, 0)
+  
+# }
+# end
+
+# Correlations
+correlations <- cor(na.omit(train1_num[,-1]))
+
+row_indic <- apply(correlations, 1, function(x) sum(x > 0.3 | x < -0.3) > 1)
+
+correlations_bol <- correlations[row_indic ,row_indic]
+
+corrplot(correlations_bol, method="circle")
 
 
 
+# Correlations of onehot encoded categories DOESN'T WORK!!!!
+b = train2_cat %>% select(1:5)
+
+corr <- cor(na.omit(train2_cat[,-1]))
+row_index <- apply(corr, 1, function(x) sum(x > 0.3 | x < -0.3) > 1)
+
+test = corr[row_index ,row_index]
+
+corrplot(test, method="circle")
+# DOESN'T WORK!!!!
 
 
+## Bar plot/Density plot function
+
+## Bar plot function
+
+plotHist <- function(data_in, i)
+{
+  data <- data.frame(x=data_in[[i]])
+  p <- ggplot(data=data, aes(x=factor(x))) + stat_count() + xlab(colnames(data_in)[i]) + theme_light() + 
+    theme(axis.text.x = element_text(angle = 90, hjust =1))
+  return (p)
+}
+
+## Density plot function
+
+plotDen <- function(data_in, i){
+  data <- data.frame(x=data_in[[i]], SalePrice = data_in$SalePrice)
+  p <- ggplot(data= data) + geom_line(aes(x = x), stat = 'density', size = 1,alpha = 1.0) +
+    xlab(paste0((colnames(data_in)[i]), '\n', 'Skewness: ',round(skewness(data_in[[i]], na.rm = TRUE), 2))) + theme_light() 
+  return(p)
+  
+}
+
+## Function to call both Bar plot and Density plot function
+
+doPlots <- function(data_in, fun, ii, ncol=3) 
+{
+  pp <- list()
+  for (i in ii) {
+    p <- fun(data_in=data_in, i=i)
+    pp <- c(pp, list(p))
+  }
+  do.call("grid.arrange", c(pp, ncol=ncol))
+}
 
 
+## Barplots for the categorical features
+
+doPlots(train1_cat, fun = plotHist, ii = 10:16, ncol = 2)
+
+ggplot(train, aes(x = Neighborhood, y = SalePrice)) +
+  geom_boxplot() +
+  geom_hline(aes(yintercept=80), 
+             colour='red', linetype='dashed', lwd=2) +
+  scale_y_continuous(labels=dollar_format()) +
+  theme_few()
 
 
+doPlots(train1_num, fun = plotDen, ii = 7:9, ncol = 2)
 
 
 
