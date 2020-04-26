@@ -2,14 +2,16 @@ library('ggplot2')
 library('ggthemes') 
 library('scales')
 library('dplyr') 
+library("plyr")
 library('mice')
-library('randomForest') 
+library('randomForest')
 library('data.table')
 library('gridExtra')
 library('corrplot') 
 library('GGally')
 library('e1071')
 library('onehot')
+library('caret')
 
 train <- read.csv2('./input/train.csv', sep = ',', stringsAsFactors = FALSE)
 test <- read.csv2('./input/test.csv', sep = ',', stringsAsFactors = FALSE)
@@ -118,47 +120,32 @@ test$SaleType[is.na(test$SaleType)] = get_mode(test$SaleType)
 
 ######################### Data Ready ####################
 
+# Split data between numerical and categorical
 cat_var <- names(train)[which(sapply(train, is.character))]
 
 numeric_var <- names(train)[which(sapply(train, is.numeric))]
 
-train1_cat<-train[cat_var]
-train1_num<-train[numeric_var]
+train1_cat <- train[cat_var]
+train1_num <- train[numeric_var]
 
-# One Hot Encoding of categories
-train2_cat <- onehot(train1_cat, stringsAsFactors = TRUE, max_levels = 1000)
-train1_encoded = predict(train2_cat, train1_cat)
+# One hot encoding for categorical variables
+dmy <- dummyVars(" ~ .", data = train1_cat)
+encoded_cat <- data.frame(predict(dmy, newdata = train1_cat))
 
-# manual one hot encoding test
-# for(unique_value in unique(train1_cat$street)){
-  
-  
-  # train1_cat[paste("street", unique_value, sep = "_")] <- ifelse(train1_cat$street == unique_value, 1, 0)
-  
-# }
-# end
+# Bind the new one-hot encoded data with the other numerical data
+wholedata <- cbind(train1_num, encoded_cat)
 
-# Correlations
-correlations <- cor(na.omit(train1_num[,-1]))
+# Print out the correlation matrix in a table
+cor1 <- cor(wholedata)
 
-row_indic <- apply(correlations, 1, function(x) sum(x > 0.3 | x < -0.3) > 1)
+# trying to print the greater correlations only
+greaterCorrelationCoefficent <- which(cor1 >= 0.85 & cor1 < 1, arr.ind = TRUE)
 
-correlations_bol <- correlations[row_indic ,row_indic]
+corCoefficentList <- cor1[cor1 >= 0.85 & cor1 < 1.0]
 
-corrplot(correlations_bol, method="circle")
+cat1col <- colnames(cor1)[27]
+cat1row <- rownames(cor1)[28]
 
-
-
-# Correlations of onehot encoded categories DOESN'T WORK!!!!
-b = train2_cat %>% select(1:5)
-
-corr <- cor(na.omit(train2_cat[,-1]))
-row_index <- apply(corr, 1, function(x) sum(x > 0.3 | x < -0.3) > 1)
-
-test = corr[row_index ,row_index]
-
-corrplot(test, method="circle")
-# DOESN'T WORK!!!!
 
 
 ## Bar plot/Density plot function
