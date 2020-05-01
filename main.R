@@ -137,12 +137,15 @@ encoded_cat <- data.frame(predict(dmy, newdata = train1_cat))
 # Bind the new one-hot encoded data with the other numerical data
 wholedata <- cbind(train1_num, encoded_cat)
 
-firstCor <- cor(wholedata[c(4, 16:50)], use="everything")
-secondCor <- cor(wholedata[c(51:100)], use="everything")
-thirdCor <- cor(wholedata[c(101:150)], use="everything")
-fourthCor <- cor(wholedata[c(151:200)], use="everything")
-fifthCor <- cor(wholedata[c(201:250)], use="everything")
-sixthCor <- cor(wholedata[c(251:261)], use="everything")
+firstCor <- cor(wholedata[c(38, 1:30)], use="everything")
+secondCor <- cor(wholedata[c(38, 31:60)], use="everything")
+thirdCor <- cor(wholedata[c(38, 61:90)], use="everything")
+fourthCor <- cor(wholedata[c(38, 91:120)], use="everything")
+fifthCor <- cor(wholedata[c(38, 121:150)], use="everything")
+sixthCor <- cor(wholedata[c(38, 151:180)], use="everything")
+seventhCor <- cor(wholedata[c(38, 181:210)], use="everything")
+eightCor <- cor(wholedata[c(38, 211:240)], use="everything")
+ninehtCor <- cor(wholedata[c(38, 241:261)], use="everything")
 
 corrplot(firstCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
 corrplot(secondCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
@@ -150,6 +153,9 @@ corrplot(thirdCor, method="circle", type="lower",  sig.level = 0.01, insig = "bl
 corrplot(fourthCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
 corrplot(fifthCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
 corrplot(sixthCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(seventhCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(eightCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(ninehtCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
 # Print out the correlation matrix in a table
 cor1 <- cor(wholedata)
 
