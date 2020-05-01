@@ -4,6 +4,8 @@ library('scales')
 library('dplyr') 
 library("plyr")
 library('mice')
+library(rpart)
+library(rpart.plot)
 library('randomForest')
 library('data.table')
 library('gridExtra')
@@ -129,12 +131,25 @@ train1_cat <- train[cat_var]
 train1_num <- train[numeric_var]
 
 # One hot encoding for categorical variables
-dmy <- dummyVars(" ~ .", data = train1_cat)
+dmy <- dummyVars(" ~ .", data = train1_cat, fullRank=TRUE)
 encoded_cat <- data.frame(predict(dmy, newdata = train1_cat))
 
 # Bind the new one-hot encoded data with the other numerical data
 wholedata <- cbind(train1_num, encoded_cat)
 
+firstCor <- cor(wholedata[c(4, 16:50)], use="everything")
+secondCor <- cor(wholedata[c(51:100)], use="everything")
+thirdCor <- cor(wholedata[c(101:150)], use="everything")
+fourthCor <- cor(wholedata[c(151:200)], use="everything")
+fifthCor <- cor(wholedata[c(201:250)], use="everything")
+sixthCor <- cor(wholedata[c(251:261)], use="everything")
+
+corrplot(firstCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(secondCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(thirdCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(fourthCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(fifthCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(sixthCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
 # Print out the correlation matrix in a table
 cor1 <- cor(wholedata)
 
@@ -142,6 +157,8 @@ cor1 <- cor(wholedata)
 greaterCorrelationCoefficent <- which(cor1 >= 0.85 & cor1 < 1, arr.ind = TRUE)
 
 corCoefficentList <- cor1[cor1 >= 0.85 & cor1 < 1.0]
+
+cor2 <- cor.test(wholedata$MSSubClass, wholedata$SalePrice, method = "pearson")
 
 cat1col <- colnames(cor1)[27]
 cat1row <- rownames(cor1)[28]
