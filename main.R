@@ -1,19 +1,20 @@
-library('ggplot2')
-library('ggthemes') 
-library('scales')
-library('dplyr') 
+library(rpart)
 library("plyr")
 library('mice')
-library(rpart)
-library(rpart.plot)
-library('randomForest')
-library('data.table')
-library('gridExtra')
-library('corrplot') 
-library('GGally')
-library('e1071')
-library('onehot')
+library(foreach)
 library('caret')
+library('dplyr')
+library('e1071')
+library('GGally')
+library('onehot')
+library('scales')
+library('ggplot2')
+library(rpart.plot)
+library('corrplot')
+library('ggthemes')
+library('gridExtra')
+library('data.table')
+library('randomForest')
 
 train <- read.csv2('./input/train.csv', sep = ',', stringsAsFactors = FALSE)
 test <- read.csv2('./input/test.csv', sep = ',', stringsAsFactors = FALSE)
@@ -137,7 +138,7 @@ encoded_cat <- data.frame(predict(dmy, newdata = train1_cat))
 # Bind the new one-hot encoded data with the other numerical data
 wholedata <- cbind(train1_num, encoded_cat)
 
-firstCor <- cor(wholedata[c(38, 1:30)], use="everything")
+firstCor <- cor(wholedata[c(38, 2:30)], use="everything")
 secondCor <- cor(wholedata[c(38, 31:60)], use="everything")
 thirdCor <- cor(wholedata[c(38, 61:90)], use="everything")
 fourthCor <- cor(wholedata[c(38, 91:120)], use="everything")
@@ -147,15 +148,15 @@ seventhCor <- cor(wholedata[c(38, 181:210)], use="everything")
 eightCor <- cor(wholedata[c(38, 211:240)], use="everything")
 ninehtCor <- cor(wholedata[c(38, 241:261)], use="everything")
 
-corrplot(firstCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
-corrplot(secondCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
-corrplot(thirdCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
-corrplot(fourthCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
-corrplot(fifthCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
-corrplot(sixthCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
-corrplot(seventhCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
-corrplot(eightCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
-corrplot(ninehtCor, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(firstCor, method="number", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(secondCor, method="number", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(thirdCor, method="number", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(fourthCor, method="number", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(fifthCor, method="number", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(sixthCor, method="number", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(seventhCor, method="number", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(eightCor, method="number", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(ninehtCor, method="number", type="lower",  sig.level = 0.01, insig = "blank")
 # Print out the correlation matrix in a table
 cor1 <- cor(wholedata)
 
@@ -164,12 +165,27 @@ greaterCorrelationCoefficent <- which(cor1 >= 0.85 & cor1 < 1, arr.ind = TRUE)
 
 corCoefficentList <- cor1[cor1 >= 0.85 & cor1 < 1.0]
 
-cor2 <- cor.test(wholedata$MSSubClass, wholedata$SalePrice, method = "pearson")
+relatedCatList = greaterCorrelationCoefficent[,"col"]
 
-cat1col <- colnames(cor1)[27]
-cat1row <- rownames(cor1)[28]
+range <- nrow(greaterCorrelationCoefficent)
 
+relationList = data.frame(
+    cat1=character(),
+    cat2=character(),
+    corCoeff=integer(),
+    stringsAsFactors = FALSE
+  )
 
+foreach(i = 1:range) %do% {
+  currentRow <- relatedCatList[i]
+  cat1 = colnames(cor1)[currentRow]
+  cat2 = rownames(greaterCorrelationCoefficent)[i]
+  corCoefficent = corCoefficentList[i]
+
+  relationList[i,] = c(cat1, cat2, corCoefficent)
+}
+
+# cor2 <- cor.test(wholedata$MSSubClass, wholedata$SalePrice, method = "pearson")
 
 ## Bar plot/Density plot function
 
