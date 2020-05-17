@@ -20,6 +20,7 @@ library('randomForest')
 source('./utils/getMode.R')
 source('./utils/solveSkewness.R')
 source('./utils/removeNumericalCorr.R')
+source('./utils/identifyOutliers.R')
 source('./utils/scaleNumericalData.R')
 source('./utils/trainFeatureEng.R')
 source('./utils/testFeatureEng.R')
@@ -38,11 +39,18 @@ test <- test %>% select(-Id)
 ######################### Data Ready ####################
 
 # Split data between numerical and categorical
+# TRAIN
 cat_var <- names(train)[which(sapply(train, is.character))]
 numeric_var <- names(train)[which(sapply(train, is.numeric))]
-
+# TEST
+test_cat_var <- names(test)[which(sapply(test, is.character))]
+test_numeric_var <- names(test)[which(sapply(test, is.numeric))]
+# TRAIN
 train1_cat <- train[cat_var]
 train1_num <- train[numeric_var]
+# TEST
+test1_cat <- test[test_cat_var]
+test1_num <- test[test_numeric_var]
 
 salePriceNotSkewed <- log(train1_num$SalePrice)
 
@@ -58,16 +66,55 @@ plot(train1_num$GarageArea, train1_num$SalePrice)
 
 plot(train1_num$GarageArea, train1_num$SalePrice)
 
-# Remove the outliers
-train1_num_step1 <- train1_num[train1_num$GrLivArea<4500,]
+# Remove the NUMERICAL outliers
+train1_num_no_outliers <- train1_num[train1_num$GrLivArea<4500,]
+train1_num_no_outliers <- train1_num[train1_num$GarageArea<1220,]
+train1_num_no_outliers <- train1_num[train1_num$TotalBsmtSF<2225,]
 
+ggplot(train1_num_no_outliers, aes(x=factor(train1_num_no_outliers$OverallQual), y=train1_num_no_outliers$SalePrice)) + geom_boxplot() + stat_summary(fun.y=median, geom="line", aes(group=1))
+# TRAIN
+for(unique_value in unique(train1_num_no_outliers$OverallQual)){
+  train1_num_no_outliers[paste("OverallQual", unique_value, sep = ".")] <- ifelse(train1_num_no_outliers$OverallQual == unique_value, 1, 0)
+}
+
+for(unique_value in unique(train1_num_no_outliers$GarageCars)){
+  train1_num_no_outliers[paste("GarageCars", unique_value, sep = ".")] <- ifelse(train1_num_no_outliers$GarageArea == unique_value, 1, 0)
+}
+
+# TEST
+for(unique_value in unique(test1_num$OverallQual)){
+  test1_num[paste("OverallQual", unique_value, sep = ".")] <- ifelse(test1_num$OverallQual == unique_value, 1, 0)
+}
+
+for(unique_value in unique(test1_num$GarageCars)){
+  test1_num[paste("GarageCars", unique_value, sep = ".")] <- ifelse(test1_num$GarageArea == unique_value, 1, 0)
+}
+
+
+# DEAL WITH CATEGORICAL DATA
 
 # One hot encoding for categorical variables
+# TRAIN
 dmy <- dummyVars(" ~ .", data = train1_cat, fullRank=TRUE)
 encoded_cat <- data.frame(predict(dmy, newdata = train1_cat))
 
+# TEST
+dmmy <- dummyVars(" ~ .", data = test1_cat, fullRank=TRUE)
+encoded_cat <- data.frame(predict(dmmy, newdata = test1_cat))
+# LEVELS ERROR, SEEMS THAT SOMETHING HAS NO LEVELS OR 1 LEVEL ONLY 
+
+short_encoded_cat <- encoded_cat[-c(1:11), ]
+
 # Bind the new one-hot encoded data with the other numerical data
-wholedata <- cbind(train1_num, encoded_cat)
+wholedata <- cbind(train1_num_no_outliers, short_encoded_cat)
+
+modeldatatrain <- wholedata %>% select(-SalePrice)
+
+
+
+
+
+
 
 
 
