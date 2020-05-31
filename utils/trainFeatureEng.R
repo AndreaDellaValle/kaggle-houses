@@ -22,17 +22,17 @@ trainEng <- function(train) {
   #colnames(test)[ apply(test, 2, anyNA) ]
   
   #filling train$LotFrontage missing values
-  hist(train$LotFrontage)
+  #hist(train$LotFrontage)
   train$LotFrontage[is.na(train$LotFrontage)] = mean(train$LotFrontage, na.rm = TRUE)
-  hist(train$LotFrontage)
+  #hist(train$LotFrontage)
   #filling train$MasVnrArea missing values
-  hist(train$MasVnrArea)
+  #hist(train$MasVnrArea)
   train$MasVnrArea[is.na(train$MasVnrArea)] = median(train$MasVnrArea, na.rm = TRUE)
-  hist(train$MasVnrArea)
+  #hist(train$MasVnrArea)
   #filling train$GarageYrBlt missing values
-  hist(train$GarageYrBlt)
+  #hist(train$GarageYrBlt)
   train$GarageYrBlt[is.na(train$GarageYrBlt)] = median(train$GarageYrBlt, na.rm = TRUE)
-  hist(train$GarageYrBlt)
+  #hist(train$GarageYrBlt)
   
   return(train)
 }

@@ -18,17 +18,17 @@ testEng <- function(test) {
   test$MiscFeature[which(is.na(test$MiscFeature))] = 'None'
   test$Alley[which(is.na(test$Alley))] = 'No alley access'
   #filling test$LotFrontage missing values
-  hist(test$LotFrontage)
+  #hist(test$LotFrontage)
   test$LotFrontage[is.na(test$LotFrontage)] = mean(test$LotFrontage, na.rm = TRUE)
-  hist(test$LotFrontage)
+  #hist(test$LotFrontage)
   #filling test$MasVnrArea missing values
-  hist(test$MasVnrArea)
+  #hist(test$MasVnrArea)
   test$MasVnrArea[is.na(test$MasVnrArea)] = median(test$MasVnrArea, na.rm = TRUE)
-  hist(test$MasVnrArea)
+  #hist(test$MasVnrArea)
   #filling test$GarageYrBlt missing values
-  hist(test$GarageYrBlt)
+  #hist(test$GarageYrBlt)
   test$GarageYrBlt[is.na(test$GarageYrBlt)] = median(test$GarageYrBlt, na.rm = TRUE)
-  hist(test$GarageYrBlt)
+  #hist(test$GarageYrBlt)
   # for bsm we set the value to 0 if 'no basement' else we use the median
   test$BsmtFinSF2[is.na(test$BsmtFinSF2)&test$BsmtCond == 'No basement'] = 0
   test$BsmtFinSF2[is.na(test$BsmtFinSF2)&test$BsmtCond != 'No basement'] = median(test$BsmtFinSF2)

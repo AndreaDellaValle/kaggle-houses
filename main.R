@@ -64,15 +64,14 @@ numCor <- cor(train1_num_no_saleprice, train1_num$SalePrice)
 # See if there are outliers in the plot
 plot(train1_num$GarageArea, train1_num$SalePrice)
 
-plot(train1_num$GarageArea, train1_num$SalePrice)
-
 # Remove the NUMERICAL outliers
 train1_num_no_outliers <- train1_num[train1_num$GrLivArea<4500,]
 train1_num_no_outliers <- train1_num[train1_num$GarageArea<1220,]
 train1_num_no_outliers <- train1_num[train1_num$TotalBsmtSF<2225,]
 
 ggplot(train1_num_no_outliers, aes(x=factor(train1_num_no_outliers$OverallQual), y=train1_num_no_outliers$SalePrice)) + geom_boxplot() + stat_summary(fun.y=median, geom="line", aes(group=1))
-# TRAIN
+
+# TRAIN one hot encode numerical var that behaves like categories
 for(unique_value in unique(train1_num_no_outliers$OverallQual)){
   train1_num_no_outliers[paste("OverallQual", unique_value, sep = ".")] <- ifelse(train1_num_no_outliers$OverallQual == unique_value, 1, 0)
 }
@@ -81,7 +80,7 @@ for(unique_value in unique(train1_num_no_outliers$GarageCars)){
   train1_num_no_outliers[paste("GarageCars", unique_value, sep = ".")] <- ifelse(train1_num_no_outliers$GarageArea == unique_value, 1, 0)
 }
 
-# TEST
+# TEST one hot encode numerical var that behaves like categories
 for(unique_value in unique(test1_num$OverallQual)){
   test1_num[paste("OverallQual", unique_value, sep = ".")] <- ifelse(test1_num$OverallQual == unique_value, 1, 0)
 }
@@ -93,28 +92,31 @@ for(unique_value in unique(test1_num$GarageCars)){
 
 # DEAL WITH CATEGORICAL DATA
 
+train1_cat <- train1_cat %>% select(-Utilities)
+test1_cat <- test1_cat %>% select(-Utilities)
 # One hot encoding for categorical variables
 # TRAIN
 dmy <- dummyVars(" ~ .", data = train1_cat, fullRank=TRUE)
-encoded_cat <- data.frame(predict(dmy, newdata = train1_cat))
+train_encoded_cat <- data.frame(predict(dmy, newdata = train1_cat))
 
 # TEST
 dmmy <- dummyVars(" ~ .", data = test1_cat, fullRank=TRUE)
-encoded_cat <- data.frame(predict(dmmy, newdata = test1_cat))
-# LEVELS ERROR, SEEMS THAT SOMETHING HAS NO LEVELS OR 1 LEVEL ONLY 
+test_encoded_cat <- data.frame(predict(dmmy, newdata = test1_cat))
 
-short_encoded_cat <- encoded_cat[-c(1:11), ]
+short_encoded_cat_train <- train_encoded_cat[-c(1:11), ]
 
 # Bind the new one-hot encoded data with the other numerical data
-wholedata <- cbind(train1_num_no_outliers, short_encoded_cat)
+wholedataTrain <- cbind(train1_num_no_outliers, short_encoded_cat_train)
+wholedataTest <- cbind(test1_num, test_encoded_cat)
 
-modeldatatrain <- wholedata %>% select(-SalePrice)
+wholedataTrainNoSP <- wholedataTrain %>% select(-SalePrice)
+salePrice <- wholedataTrain$SalePrice
 
+linearModel <- lm(wholedataTrain$OverallQual ~ salePrice, data = wholedataTrain)
 
+print(linearModel$coefficients)
 
-
-
-
+plot(wholedataTrain$OverallQual, salePrice)
 
 
 
