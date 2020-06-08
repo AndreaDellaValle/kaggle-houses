@@ -110,13 +110,14 @@ wholedataTrain <- cbind(train1_num_no_outliers, short_encoded_cat_train)
 wholedataTest <- cbind(test1_num, test_encoded_cat)
 
 wholedataTrainNoSP <- wholedataTrain %>% select(-SalePrice)
+
 salePrice <- wholedataTrain$SalePrice
 
-linearModel <- lm(wholedataTrain$OverallQual ~ salePrice, data = wholedataTrain)
-
-print(linearModel$coefficients)
-
-plot(wholedataTrain$OverallQual, salePrice)
+linearModel <- lm(salePrice ~ ., data = wholedataTrainNoSP)
+# INSTEAD OF REMOVING ONE HOT ENCODED COLUMNS THAT DOES NOT
+# OCCUR IN TEST SET > JOIN TRAIN AND TEST AND ONE HOT ENCODE THEM
+# AND RE SPLIT THEM AGAIN WITH FIXED SEED POINT
+predict(linearModel, newdata = wholedataTest)
 
 
 
